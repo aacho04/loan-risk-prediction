@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loan Risk Predictor</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #5a67d8;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .approved {
+            color: green;
+        }
+
+        .rejected {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>Loan Risk Predictor</h2>
+
+    <input id="income" type="number" placeholder="Applicant Income">
+    <input id="loan" type="number" placeholder="Loan Amount">
+    <input id="credit" type="number" placeholder="Credit History (0 or 1)">
+
+    <button onclick="predict()">Check Eligibility</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+async function predict() {
+
+    const income = parseInt(document.getElementById("income").value);
+    const loan = parseInt(document.getElementById("loan").value);
+    const credit = parseInt(document.getElementById("credit").value);
+
+    const data = {
+        Dependents: 1,
+        ApplicantIncome: income,
+        CoapplicantIncome: 0,
+        LoanAmount: loan,
+        Loan_Amount_Term: 360,
+        Credit_History: credit,
+        Total_Income: income,
+        Debt_to_Income: loan / income,
+        Gender_Male: 1,
+        Married_Yes: 1,
+        Education_Not Graduate: 0,
+        Self_Employed_Yes: 0,
+        Property_Area_Semiurban: 1,
+        Property_Area_Urban: 0
+    };
+
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    const resultDiv = document.getElementById("result");
+
+    if (result.message.includes("Approved")) {
+        resultDiv.className = "approved";
+    } else {
+        resultDiv.className = "rejected";
+    }
+
+    resultDiv.innerHTML = `
+        ${result.message} <br>
+        Probability: ${result.probability}
+    `;
+}
+</script>
+
+</body>
+</html>
